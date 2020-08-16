@@ -1,0 +1,36 @@
+# parent folder for saving freerun data.
+# if null, save to same folder as running program
+save_folder: null
+
+# name of the device - used in save filename
+device_id: device1
+
+# interval to wait between measurments in s
+interval: 1
+
+# lock-in amplifier settings.
+# settings are usually specified by a corresponding integer. See instrument manual for details.
+# VISA resource name
+resource_name: "GPIB0::5::INSTR"
+output_interface: 1
+input_configuration: 0
+input_coupling: 0
+ground_shielding: 1
+line_notch_filter_status: 3
+ref_source: 0
+detection_harmonic: 1
+ref_trigger: 1
+ref_freq: 1000
+sensitivity: 26
+reserve_mode: 1
+time_constant: 8
+low_pass_filter_slope: 1
+sync_status: 0
+ch1_display: 1
+ch2_display: 1
+ch1_ratio: 0
+ch2_ratio: 0
+# automatically find appropriate gain setting for each measurement
+auto_gain: True
+# autogain method can be "instrument" or "custom"
+auto_gain_method: custom
