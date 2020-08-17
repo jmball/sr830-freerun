@@ -22,9 +22,6 @@ args = parser.parse_args()
 class csr830(sr830.sr830):
     """SR830 lock-in amplifier class that can be used with a context manager."""
 
-    def __init__(self, return_int=False, check_errors=False):
-        super().__init__(return_int, check_errors)
-
     def __enter__(self):
         """Enter the runtime context related to this object."""
         return self
@@ -34,7 +31,7 @@ class csr830(sr830.sr830):
 
         Make sure everything gets cleaned up properly.
         """
-        self.set_sensitivity(26)
+        self.sensitivity = 26
         self.disconnect()
 
 
@@ -48,31 +45,30 @@ def custom_autogain(lia):
     """
     gain_set = False
     while not gain_set:
-        # get current sensitivity
-        sensitivity_int = lia.get_sensitivity()
-        sensitivity = lia.sensitivities[sensitivity_int]
+        # get current sensitivity (both int and V/A)
+        old_sensitivity = lia.sensitivity
+        old_sensitivity_va = lia.sensitivities[old_sensitivity]
 
-        # get current time constant
-        time_constant_int = lia.get_time_constant()
-        time_constant = lia.time_constants[time_constant_int]
+        # get current time constant in s
+        time_constant_s = lia.time_constants[lia.time_constant]
 
         # wait 5 time constants for signal to settle
-        time.sleep(5 * time_constant)
+        time.sleep(5 * time_constant_s)
 
         # adjust sensitivity if R is not within 10 - 90 % of current range and not at
         # one high or low limit
         R = lia.measure(3)
-        if (R >= sensitivity * 0.9) and (sensitivity_int < 26):
-            new_sensitivity = sensitivity_int + 1
-        elif (R <= 0.1 * sensitivity) and (sensitivity_int > 0):
-            new_sensitivity = sensitivity_int - 1
+        if (R >= old_sensitivity_va * 0.9) and (old_sensitivity < 26):
+            new_sensitivity = old_sensitivity + 1
+        elif (R <= 0.1 * old_sensitivity_va) and (old_sensitivity > 0):
+            new_sensitivity = old_sensitivity - 1
         else:
             # found correct senstivity
-            new_sensitivity = sensitivity_int
+            new_sensitivity = old_sensitivity
             gain_set = True
 
         # update sensitivity
-        lia.set_sensitivity(new_sensitivity)
+        lia.sensitivity = new_sensitivity
 
 
 def measure_all(lia, config):
@@ -102,10 +98,11 @@ def measure_all(lia, config):
                 + "'instrument' or 'custom'."
             )
 
-    # allow 5 time constants for signal to settle
-    time_constant_int = lia.get_time_constant()
-    time_constant = lia.time_constants[time_constant_int]
-    time.sleep(5 * time_constant)
+    # get current time constant in s
+    time_constant_s = lia.time_constants[lia.time_constant]
+
+    # wait 5 time constants for signal to settle
+    time.sleep(5 * time_constant_s)
 
     # measure all available lock-in paramteres
     data0 = [time.time()]
@@ -122,38 +119,33 @@ with open(args.config, "r") as f:
 
 # run lock-in amplifier in context manager so it gets cleaned up properly if an error
 # occurs
-with csr830(return_int=True) as lia:
+with csr830(config["resource_name"]) as lia:
     # connect to the instrument
-    lia.connect(
-        config["resource_name"],
-        config["output_interface"],
-        reset=True,
-        set_default_configuration=False,
-    )
+    lia.connect(config["output_interface"])
 
     # set configuration
-    lia.set_input_configuration(config["input_configuration"])
-    lia.set_input_coupling(config["input_coupling"])
-    lia.set_input_shield_gnd(config["ground_shielding"])
-    lia.set_line_notch_status(config["line_notch_filter_status"])
-    lia.set_ref_source(config["ref_source"])
+    lia.input_configuration = config["input_configuration"]
+    lia.input_coupling = config["input_coupling"]
+    lia.input_shield_gnd = config["ground_shielding"]
+    lia.line_notch_status = config["line_notch_filter_status"]
+    lia.reference_source = config["ref_source"]
     if config["ref_source"] == 0:
-        lia.set_ref_freq(config["ref_freq"])
-    lia.set_harmonic(config["detection_harmonic"])
-    lia.set_reference_trigger(config["ref_trigger"])
-    lia.set_reserve_mode(config["reserve_mode"])
-    lia.set_time_constant(config["time_constant"])
-    lia.set_lp_filter_slope(config["low_pass_filter_slope"])
-    lia.set_sync_status(config["sync_status"])
+        lia.ref_freq = config["ref_freq"]
+    lia.harmonic = config["detection_harmonic"]
+    lia.reference_trigger = config["ref_trigger"]
+    lia.reserve_mode = config["reserve_mode"]
+    lia.time_constant = config["time_constant"]
+    lia.lp_filter_slope = config["low_pass_filter_slope"]
+    lia.sync_status = config["sync_status"]
     lia.set_display(1, config["ch1_display"], config["ch1_ratio"])
     lia.set_display(2, config["ch2_display"], config["ch2_ratio"])
 
     if config["auto_gain"] is False:
         # user defined sensitivity setting
-        lia.set_sensitivity(config["sensitivity"])
+        lia.sensitivity = config["sensitivity"]
     else:
         # set sensitivity/gain to lowest setting to prevent overload before autogain
-        lia.set_sensitivity(26)
+        lia.sensitivity = 26
 
     # init save file
     header = (
