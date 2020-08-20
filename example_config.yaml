@@ -8,29 +8,38 @@ device_id: device1
 # interval to wait between measurments in s
 interval: 1
 
-# lock-in amplifier settings.
-# settings are usually specified by a corresponding integer. See instrument manual for details.
-# VISA resource name
-resource_name: "GPIB0::5::INSTR"
-output_interface: 1
-input_configuration: 0
-input_coupling: 0
-ground_shielding: 1
-line_notch_filter_status: 3
-ref_source: 0
-detection_harmonic: 1
-ref_trigger: 1
-ref_freq: 1000
-sensitivity: 26
-reserve_mode: 1
-time_constant: 8
-low_pass_filter_slope: 1
-sync_status: 0
-ch1_display: 1
-ch2_display: 1
-ch1_ratio: 0
-ch2_ratio: 0
-# automatically find appropriate gain setting for each measurement
-auto_gain: True
-# autogain method can be "instrument" or "custom"
-auto_gain_method: custom
+# lock-in amplifier settings
+lia:
+    # PyVISA settings. Valid arguments depend on instrument resource type. See PyVISA
+    # documentation for details.
+    visa:
+        resource_name: "GPIB0::5::INSTR"
+        # timeout in ms
+        timeout: 30000
+
+    # Instrument setup settings are specified by an integer that maps to a value or
+    # setting. See instrument manual for details.
+    setup:
+        output_interface: 1
+        input_configuration: 0
+        input_coupling: 0
+        input_shield_grounding: 1
+        line_notch_filter_status: 3
+        reference_source: 0
+        reference_trigger: 1
+        reference_frequency: null
+        harmonic: 1
+        sensitivity: null
+        reserve_mode: 1
+        time_constant: 8
+        lowpass_filter_slope: 1
+        ch1_display: 1
+        ch2_display: 1
+        ch1_ratio: 0
+        ch2_ratio: 0
+        # automatically find appropriate gain setting for each measurement
+        auto_gain: True
+        # autogain method can be "instrument" or "custom"
+        auto_gain_method: custom
+        # max waiting time for signal to settle when using autogain
+        settling_timeout: 10
