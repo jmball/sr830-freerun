@@ -4,6 +4,7 @@ import collections
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 import dash_daq as daq
 import numpy as np
 import plotly
@@ -60,7 +61,7 @@ fig_R.update_yaxes(
     autorange=False,
 )
 fig_R.update_layout(
-    font={"size": 16}, margin=dict(l=20, r=0, t=30, b=0), plot_bgcolor="rgba(0,0,0,0)"
+    font={"size": 16}, margin=dict(l=30, r=30, t=30, b=30), plot_bgcolor="rgba(0,0,0,0)"
 )
 
 fig_phase = plotly.subplots.make_subplots()
@@ -86,36 +87,47 @@ fig_phase.update_yaxes(
     autorange=False,
 )
 fig_phase.update_layout(
-    font={"size": 16}, margin=dict(l=20, r=0, t=30, b=0), plot_bgcolor="rgba(0,0,0,0)"
+    font={"size": 16}, margin=dict(l=30, r=30, t=30, b=30), plot_bgcolor="rgba(0,0,0,0)"
 )
 
 
 # thread safe store for save path
 save_path = collections.deque(maxlen=1)
 
+#
 
-app = dash.Dash(__name__)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-app.layout = html.Div(
-    html.Div(
-        [
-            html.Div(
-                dcc.Graph(
-                    id="R_graph",
-                    figure=fig_R,
-                    style={"width": "95vw", "height": "95vh"},
-                )
+app.layout = dbc.Container(
+    [
+        html.H1("SR830 Freerun", style={"font-weight": "bold"}),
+        html.Hr(),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Button("Start", color="primary", block=True, disabled=False),
+                    width=6,
+                ),
+                dbc.Col(
+                    dbc.Button("Stop", color="primary", block=True, disabled=True),
+                    width=6,
+                ),
+            ]
+        ),
+        dbc.Row(
+            dbc.Tabs(
+                [
+                    dbc.Tab(label="Setup", tab_id="setup"),
+                    dbc.Tab(label="Data View", tab_id="view"),
+                ],
+                id="tabs",
+                active_tab="setup",
             ),
-            html.Div(
-                dcc.Graph(
-                    id="phase_graph",
-                    figure=fig_phase,
-                    style={"width": "95vw", "height": "95vh"},
-                )
-            ),
-            dcc.Interval(id="interval-component", interval=1 * 2000, n_intervals=0,),
-        ],
-    ),
+        ),
+        html.Div(id="tab-content", className="p-4"),
+        dcc.Interval(id="interval-component", interval=1 * 2000, n_intervals=0,),
+    ],
+    style={"width": "100vw", "height": "100vh"},
 )
 
 
@@ -147,32 +159,63 @@ def update_graph_live(n, R_graph, phase_graph):
     return [R_graph, phase_graph]
 
 
-@app.callback(inputs=[dash.dependencies.Input("start", "value")],)
-def start():
-    pass
-
-
-@app.callback(inputs=[dash.dependencies.Input("stop", "value")],)
-def stop():
-    pass
-
-
 @app.callback(
-    dash.dependencies.Output("start", "disabled"),
-    [dash.dependencies.Input("stop", "value")],
+    dash.dependencies.Output("tab-content", "children"),
+    [dash.dependencies.Input("tabs", "active_tab")],
 )
-def set_start_enabled_state(enabled):
-    return enabled
+def render_tab_content(active_tab):
+    """
+    This callback takes the 'active_tab' property as input, and renders the tab content depending on what the value of
+    'active_tab' is.
+    """
+    print(active_tab)
+    if active_tab is not None:
+        if active_tab == "setup":
+            return dbc.Container()
+        elif active_tab == "view":
+            return dbc.Container(
+                [
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id="R_graph", figure=fig_R), width=12),
+                        justify="center",
+                    ),
+                    dbc.Row(
+                        dbc.Col(
+                            dcc.Graph(id="phase_graph", figure=fig_phase), width=12
+                        ),
+                        justify="center",
+                    ),
+                ]
+            )
+    return "No tab selected"
 
 
-@app.callback(
-    dash.dependencies.Output("stop", "disabled"),
-    [dash.dependencies.Input("start", "value")],
-)
-def set_stop_enabled_state(enabled):
-    return enabled
+# @app.callback(inputs=[dash.dependencies.Input("start", "value")],)
+# def start():
+#     pass
+
+
+# @app.callback(inputs=[dash.dependencies.Input("stop", "value")],)
+# def stop():
+#     pass
+
+
+# @app.callback(
+#     dash.dependencies.Output("start", "disabled"),
+#     [dash.dependencies.Input("stop", "value")],
+# )
+# def set_start_enabled_state(enabled):
+#     return enabled
+
+
+# @app.callback(
+#     dash.dependencies.Output("stop", "disabled"),
+#     [dash.dependencies.Input("start", "value")],
+# )
+# def set_stop_enabled_state(enabled):
+#     return enabled
 
 
 if __name__ == "__main__":
     # start dash server
-    app.run_server(host="127.0.0.1", port=8050, debug=False)
+    app.run_server(host="127.0.0.1", port=8050, debug=True)
