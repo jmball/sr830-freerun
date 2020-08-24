@@ -10,6 +10,8 @@ import plotly
 import plotly.subplots
 import plotly.graph_objs as go
 
+from app import app
+
 
 def format_figure(data, fig):
     """Format figure.
@@ -90,5 +92,38 @@ fig_phase.update_layout(
 )
 
 
-# thread safe store for save path
-save_path = collections.deque(maxlen=1)
+layout = [
+    dbc.Row(dbc.Col(dcc.Graph(id="R_graph", figure=fig_R))),
+    dbc.Row(dbc.Col(dcc.Graph(id="phase_graph", figure=fig_phase))),
+]
+
+
+@app.callback(
+    [
+        dash.dependencies.Output("R_graph", "figure"),
+        dash.dependencies.Output("phase_graph", "figure"),
+    ],
+    [dash.dependencies.Input("interval-component", "n_intervals")],
+    [
+        dash.dependencies.State("R_graph", "figure"),
+        dash.dependencies.State("phase_graph", "figure"),
+        dash.dependencies.State("save_path", "children"),
+    ],
+)
+def update_graph_live(n, R_graph, phase_graph, save_path):
+    """Update graph."""
+    # print(session_data)
+    if len(save_path) != 0:
+        # # load data from save file
+        # data = np.genfromtxt(
+        #     save_path[0], delimiter="\t", skip_header=1, usecols=[0, 7, 8]
+        # )
+        # # calc experiment time from timestamp
+        # data[:, 0] = data[:, 0] - data[0, 0]
+
+        # # update graphs
+        # R_graph = format_figure(data[:, [0, 1]], R_graph)
+        # phase_graph = format_figure(data[:, [0, 2]], phase_graph)
+        pass
+
+    return [R_graph, phase_graph]
