@@ -56,12 +56,18 @@ button_bar = html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    dbc.Button("Start", id="start", color="success", block=True),
+                    dbc.Button(
+                        "Start",
+                        id="start",
+                        color="primary",
+                        block=True,
+                        disabled=False,
+                    ),
                     width=4,
                 ),
                 dbc.Col(
                     dbc.Button(
-                        "Stop", id="stop", color="danger", block=True, disabled=True
+                        "Stopped", id="stop", color="primary", block=True, disabled=True
                     ),
                     width=4,
                 ),
@@ -128,6 +134,37 @@ def toggle_active_links(pathname):
         return False, True
     else:
         return False, False
+
+
+@app.callback(
+    [
+        dash.dependencies.Output("start", "disabled"),
+        dash.dependencies.Output("stop", "disabled"),
+        dash.dependencies.Output("start", "children"),
+        dash.dependencies.Output("stop", "children"),
+    ],
+    [
+        dash.dependencies.Input("start", "n_clicks"),
+        dash.dependencies.Input("stop", "n_clicks"),
+    ],
+    [
+        dash.dependencies.State("start", "disabled"),
+        dash.dependencies.State("stop", "disabled"),
+        dash.dependencies.State("start", "children"),
+        dash.dependencies.State("stop", "children"),
+    ],
+)
+def push_start_stop(
+    start_clicks, stop_clicks, start_disabled, stop_disabled, start_text, stop_text
+):
+    """Perform start action and enable/disable buttons accordingly."""
+    changed_id = [p["prop_id"] for p in dash.callback_context.triggered][0]
+    if changed_id == ".":
+        return start_disabled, stop_disabled, start_text, stop_text
+    elif "start" in changed_id:
+        return True, False, "Measuring...", "Stop"
+    elif "stop" in changed_id:
+        return False, True, "Start", "Stopped"
 
 
 if __name__ == "__main__":
