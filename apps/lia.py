@@ -1,6 +1,10 @@
-"""Setup page."""
-import decimal
+"""Setup page.
 
+N.B. dbc.Select component values are 1-indexed becuase they derive from the HTML
+<select> element (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select).
+Value mappings for the lock-in amplifier are 0-indexed so values read from Select
+components must be decremented before being sent to the lock-in amplifier.
+"""
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -10,85 +14,16 @@ import sr830
 from app import app
 
 
-save_folder_input = dbc.FormGroup(
-    [
-        dbc.Label("Save folder"),
-        dbc.Input(
-            id="save-input",
-            type="path",
-            value="",
-            persistence=True,
-            persistence_type="session",
-        ),
-        dbc.FormFeedback("", valid=True),
-        dbc.FormFeedback(
-            "Folder doesn't exist. Please choose an existing folder", valid=False,
-        ),
-        dbc.Tooltip(
-            "Parent folder containing data files",
-            target="save-input",
-            placement="bottom",
-        ),
-    ]
-)
-
-device_id_input = dbc.FormGroup(
-    [
-        dbc.Label("Device ID"),
-        dbc.Input(
-            id="device-id",
-            type="text",
-            value="",
-            persistence=True,
-            persistence_type="session",
-        ),
-        dbc.FormFeedback("", valid=True),
-        dbc.FormFeedback(
-            (
-                "Use alphanumeric, _, and - characters only. Avoid special characters: "
-                + "@, #, ~, >, <, /, etc."
-            ),
-            valid=False,
-        ),
-        dbc.Tooltip(
-            "Device identifier used in data filename",
-            target="device-id",
-            placement="bottom",
-        ),
-    ]
-)
-
-interval_input = dbc.FormGroup(
-    [
-        dbc.Label("Measurement interval (s)"),
-        dbc.Input(
-            id="meas-interval",
-            type="number",
-            value=1.000,
-            min=0,
-            persistence=True,
-            persistence_type="session",
-        ),
-        dbc.FormFeedback("", valid=True),
-        dbc.FormFeedback("Intervals must be greater than zero", valid=False),
-        dbc.Tooltip(
-            "Interval between measurements in seconds",
-            target="meas-interval",
-            placement="bottom",
-        ),
-    ]
-)
-
 input_config_options = []
 for ix, option in enumerate(sr830.sr830().input_configurations):
-    input_config_options.append({"label": option, "value": ix})
+    input_config_options.append({"label": option, "value": ix + 1})
 
 input_configuration = dbc.FormGroup(
     [
         dbc.Label("Input configuration"),
         dbc.Select(
             id="input-config",
-            value=0,
+            value=1,
             options=input_config_options,
             persistence=True,
             persistence_type="session",
@@ -99,14 +34,14 @@ input_configuration = dbc.FormGroup(
 
 input_coupling_options = []
 for ix, option in enumerate(sr830.sr830().input_couplings):
-    input_coupling_options.append({"label": option, "value": ix})
+    input_coupling_options.append({"label": option, "value": ix + 1})
 
 input_coupling = dbc.FormGroup(
     [
         dbc.Label("Input coupling"),
         dbc.Select(
             id="input-coupling",
-            value=0,
+            value=1,
             options=input_coupling_options,
             persistence=True,
             persistence_type="session",
@@ -117,14 +52,14 @@ input_coupling = dbc.FormGroup(
 
 input_grounding_options = []
 for ix, option in enumerate(sr830.sr830().groundings):
-    input_grounding_options.append({"label": option, "value": ix})
+    input_grounding_options.append({"label": option, "value": ix + 1})
 
 input_grounding = dbc.FormGroup(
     [
         dbc.Label("Input shield grounding"),
         dbc.Select(
             id="input-grounding",
-            value=1,
+            value=2,
             options=input_grounding_options,
             persistence=True,
             persistence_type="session",
@@ -137,14 +72,14 @@ input_grounding = dbc.FormGroup(
 
 line_notch_options = []
 for ix, option in enumerate(sr830.sr830().input_line_notch_filter_statuses):
-    line_notch_options.append({"label": option, "value": ix})
+    line_notch_options.append({"label": option, "value": ix + 1})
 
 line_notch = dbc.FormGroup(
     [
         dbc.Label("Line notch filter status"),
         dbc.Select(
             id="line-notch",
-            value=3,
+            value=4,
             options=line_notch_options,
             persistence=True,
             persistence_type="session",
@@ -157,14 +92,14 @@ line_notch = dbc.FormGroup(
 
 ref_source_options = []
 for ix, option in enumerate(sr830.sr830().reference_sources):
-    ref_source_options.append({"label": option, "value": ix})
+    ref_source_options.append({"label": option, "value": ix + 1})
 
 ref_source = dbc.FormGroup(
     [
         dbc.Label("Reference source"),
         dbc.Select(
             id="ref-source",
-            value=0,
+            value=1,
             options=ref_source_options,
             persistence=True,
             persistence_type="session",
@@ -177,14 +112,14 @@ ref_source = dbc.FormGroup(
 
 ref_trigger_options = []
 for ix, option in enumerate(sr830.sr830().triggers):
-    ref_trigger_options.append({"label": option, "value": ix})
+    ref_trigger_options.append({"label": option, "value": ix + 1})
 
 ref_trigger = dbc.FormGroup(
     [
         dbc.Label("Reference trigger"),
         dbc.Select(
             id="ref-trigger",
-            value=1,
+            value=2,
             options=ref_trigger_options,
             persistence=True,
             persistence_type="session",
@@ -276,14 +211,14 @@ if len(sensitivities) != len(sr830.sr830().sensitivities):
 
 sensitivity_options = []
 for ix, option in enumerate(sensitivities):
-    sensitivity_options.append({"label": option, "value": ix})
+    sensitivity_options.append({"label": option, "value": ix + 1})
 
 sensitivity = dbc.FormGroup(
     [
         dbc.Label("Sensitivity"),
         dbc.Select(
             id="sensitivity",
-            value=26,
+            value=27,
             options=sensitivity_options,
             persistence=True,
             persistence_type="session",
@@ -294,14 +229,14 @@ sensitivity = dbc.FormGroup(
 
 reserve_mode_options = []
 for ix, option in enumerate(sr830.sr830().reserve_modes):
-    reserve_mode_options.append({"label": option, "value": ix})
+    reserve_mode_options.append({"label": option, "value": ix + 1})
 
 reserve_mode = dbc.FormGroup(
     [
         dbc.Label("Reserve mode"),
         dbc.Select(
             id="reserve-mode",
-            value=1,
+            value=2,
             options=reserve_mode_options,
             persistence=True,
             persistence_type="session",
@@ -310,14 +245,8 @@ reserve_mode = dbc.FormGroup(
     ]
 )
 
-
-form = dbc.Form(
+layout = html.Div(
     [
-        save_folder_input,
-        dbc.Row(
-            [dbc.Col(device_id_input, width=6), dbc.Col(interval_input, width=6)],
-            form=True,
-        ),
         dbc.Row(
             [dbc.Col(input_configuration, width=6), dbc.Col(input_coupling, width=6)],
             form=True,
@@ -335,4 +264,3 @@ form = dbc.Form(
         html.Div(id="hidden", children="", hidden=True),
     ]
 )
-

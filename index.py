@@ -6,7 +6,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 
 from app import app
-from apps import settings, livedata
+from apps import experiment, lia, livedata
 
 # the style arguments for the sidebar. We use position:fixed and a fixed width
 SIDEBAR_STYLE = {
@@ -14,16 +14,35 @@ SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
     "bottom": 0,
-    "width": "25rem",
+    # "width": "25rem",
+    "width": "27.5vw",
+    "height": "100vh",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
+}
+
+# style for the top bar with start, stop, and exit buttons
+BUTTONBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": "27.5vw",
+    "bottom": "45rem",
+    "width": "72.5vw",
+    "height": "75px",
+    "padding": "1rem 1rem",
 }
 
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
 CONTENT_STYLE = {
-    "margin-left": "23rem",
-    "margin-right": "2rem",
+    "position": "fixed",
+    "top": "75px",
+    "left": "27.5vw",
+    "bottom": 0,
+    "width": "72.5vw",
+    "height": "100vh - 75px",
+    # "margin-left": "23rem",
+    # "margin-right": "2rem",
     "padding": "1rem 1rem",
 }
 
@@ -35,7 +54,16 @@ sidebar = html.Div(
         dbc.Nav(
             [
                 dbc.NavLink(
-                    "Setup", href="setup", id="setup", style={"font-size": "18pt"},
+                    "Experiment Setup",
+                    href="experiment",
+                    id="experiment",
+                    style={"font-size": "18pt"},
+                ),
+                dbc.NavLink(
+                    "Lock-in Amplifier Setup",
+                    href="lia",
+                    id="lia",
+                    style={"font-size": "18pt"},
                 ),
                 dbc.NavLink(
                     "Live Data",
@@ -78,7 +106,7 @@ button_bar = html.Div(
         ),
         html.Hr(),
     ],
-    style=CONTENT_STYLE,
+    style=BUTTONBAR_STYLE,
 )
 
 page_content = html.Div(id="page-content", style=CONTENT_STYLE)
@@ -103,8 +131,10 @@ app.layout = dbc.Container(
 )
 def display_page(pathname, save_path):
     """Display selected page."""
-    if pathname in ["/", "/setup"]:
-        return settings.layout
+    if pathname in ["/", "/experiment"]:
+        return experiment.layout
+    elif pathname in ["/lia"]:
+        return lia.layout
     elif pathname == "/livedata":
         return livedata.layout
     else:
@@ -120,20 +150,23 @@ def display_page(pathname, save_path):
 
 @app.callback(
     [
-        dash.dependencies.Output("setup", "active"),
+        dash.dependencies.Output("experiment", "active"),
+        dash.dependencies.Output("lia", "active"),
         dash.dependencies.Output("livedata", "active"),
     ],
     [dash.dependencies.Input("url", "pathname")],
 )
 def toggle_active_links(pathname):
     """Set the active state of navlinks."""
-    if pathname in ["/", "/setup"]:
+    if pathname in ["/", "/experiment"]:
         # Treat page 1 as the homepage / index
-        return True, False
+        return True, False, False
+    elif pathname == "/lia":
+        return False, True, False
     elif pathname == "/livedata":
-        return False, True
+        return False, False, True
     else:
-        return False, False
+        return False, False, False
 
 
 @app.callback(

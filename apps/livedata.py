@@ -93,8 +93,12 @@ fig_phase.update_layout(
 
 
 layout = [
-    dbc.Row(dbc.Col(dcc.Graph(id="R_graph", figure=fig_R))),
-    dbc.Row(dbc.Col(dcc.Graph(id="phase_graph", figure=fig_phase))),
+    dbc.Row(dbc.Col(dcc.Graph(id="R_graph", figure=fig_R, style={"height": "44vh"}))),
+    dbc.Row(
+        dbc.Col(
+            dcc.Graph(id="phase_graph", figure=fig_phase, style={"height": "44vh"},)
+        )
+    ),
 ]
 
 
